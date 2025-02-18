@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "device-management"
+dynamic = ["version"]
+description = 'iot management'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+dependencies = []
+
+[tool.hatch.envs.default]
+dependencies = [
+    "flake8",
+    "pytest",
+    "black",
+    "duckdb"
+]
+
+[tool.hatch.version]
+path = "device_management/__init__.py"
+
+[tool.hatch.build]
+include = ["device_management/*.py"]
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
