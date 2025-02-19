@@ -2,6 +2,7 @@ from device_management import device, fake_api
 
 DWELLING_STATUSES = ["Occupied", "Vacant"]
 
+
 def install_hub(hub_uuid=None, dwelling_uuid=None):
     if dwelling_uuid is None:
         dwelling_uuid = fake_api.create_dwelling()
@@ -38,7 +39,9 @@ def list_dwellings(limit=10, offset=0):
 
 def resident_moved_out(dwelling_uuid):
     # get dwellings devices
-    devices = fake_api.get_devices_by_dwelling_uuid(dwelling_uuid=dwelling_uuid)
+    devices = fake_api.get_devices_by_dwelling_uuid(
+        dwelling_uuid=dwelling_uuid
+    )
     request_json = {"status": "Vacant"}
     fake_api.update_dwelling_status_by_uuid(dwelling_uuid, request_json)
 
@@ -55,7 +58,9 @@ def resident_moved_out(dwelling_uuid):
 
 
 def resident_moved_in(dwelling_uuid, create_hub=False):
-    devices = fake_api.get_devices_by_dwelling_uuid(dwelling_uuid=dwelling_uuid)
+    devices = fake_api.get_devices_by_dwelling_uuid(
+        dwelling_uuid=dwelling_uuid
+    )
     request_json = {"status": "Occupied"}
     fake_api.update_dwelling_status_by_uuid(dwelling_uuid, request_json)
 

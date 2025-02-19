@@ -52,7 +52,9 @@ def update_state(device_uuid, state):
     device_state = DEVICE_TYPES[device_type]
     if state in device_state["state"] or state.isnumeric():
         json_body = {"state": state}
-        fake_api.update_device_by_uuid(device_uuid=device_uuid, request_data=json_body)
+        fake_api.update_device_by_uuid(
+            device_uuid=device_uuid, request_data=json_body
+        )
         return True, None
 
     return False, None

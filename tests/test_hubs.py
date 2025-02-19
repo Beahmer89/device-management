@@ -22,7 +22,7 @@ def test_pairing_device_without_device(db_connection):
 
     paired, error = hub.pair_device(device_uuid=device_uuid, hub_uuid=hub_uuid)
 
-    assert paired == False
+    assert paired is False
     assert error == "Device Not Found"
 
 
@@ -62,7 +62,7 @@ def test_pairing_device_already_paired(db_connection):
 
     # associate 1 device with another
     paired, error = hub.pair_device(device_uuid=lock_device_uuid, hub_uuid=hub_uuid)
-    assert paired == False
+    assert paired is False
     assert error == "Device is already paired"
 
 
@@ -71,7 +71,7 @@ def test_pairing_device_with_noexistent_hub(db_connection):
     hub_uuid = str(uuid.uuid4())
     paired, error = hub.pair_device(hub_uuid=hub_uuid, device_uuid=device_uuid)
 
-    assert paired == False
+    assert paired is False
     assert error == "Could not find/create hub"
 
 

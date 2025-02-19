@@ -29,7 +29,7 @@ def test_install_hub_unknown_hub_uuid(db_connection):
     assert error == "Hub Not Found"
 
 
-def test_install_hub_unknown_hub_uuid(db_connection):
+def test_install_hub_unknown_dwelling_uuid(db_connection):
     dwelling_uuid = str(uuid.uuid4())
     hub_uuid, error = dwelling.install_hub(dwelling_uuid=dwelling_uuid)
 
@@ -87,7 +87,7 @@ def test_resident_moved_out_successfully(db_connection, create_dwelling):
     ).fetchone()
 
     assert lock_device_before[2] != lock_device_after[2]
-    assert lock_device_before[2] != lock_device_after[2]
+    assert switch_device_before[2] != switch_device_after[2]
     assert dwelling_status[0] == "Vacant"
 
 
@@ -100,7 +100,7 @@ def test_resident_moved_out_no_hub(db_connection, create_dwelling):
         "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
     ).fetchone()
 
-    assert moved_out == True
+    assert moved_out is True
     assert dwelling_status[0] == "Vacant"
 
 
@@ -114,7 +114,7 @@ def test_resident_moved_out_no_devices(db_connection, create_dwelling):
         "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
     ).fetchone()
 
-    assert moved_out == True
+    assert moved_out is True
     assert dwelling_status[0] == "Vacant"
 
 
@@ -128,7 +128,7 @@ def test_resident_moved_in_with_hub(db_connection, create_dwelling):
         "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
     ).fetchone()
 
-    assert moved_out == True
+    assert moved_out is True
     assert dwelling_status[0] == "Occupied"
 
 
@@ -148,6 +148,6 @@ def test_resident_moved_in_create_hub(db_connection, create_dwelling):
         "SELECT uuid FROM hubs WHERE dwelling_uuid = ?", (dwelling_uuid,)
     ).fetchone()
 
-    assert moved_in == True
+    assert moved_in is True
     assert dwelling_status[0] == "Occupied"
     assert len(hub_created) == 1

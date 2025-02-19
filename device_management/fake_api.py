@@ -3,6 +3,10 @@ import uuid
 
 CON = duckdb.connect(database="test_db.duckdb")
 
+"""
+This File is just used for mocking functions that an API would probably do
+"""
+
 
 def create_device(request_data):
     device_uuid = str(uuid.uuid4())
@@ -154,7 +158,7 @@ def get_devices_by_dwelling_uuid(dwelling_uuid):
 
 def update_dwelling_status_by_uuid(dwelling_uuid, request_data):
     dwelling_status = request_data["status"]
-    result = CON.execute(
+    CON.execute(
         "UPDATE dwellings SET status = ? WHERE uuid = ?;",
         (
             dwelling_status,
