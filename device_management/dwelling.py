@@ -1,5 +1,6 @@
 from device_management import device, fake_api
 
+DWELLING_STATUSES = ["Occupied", "Vacant"]
 
 def install_hub(hub_uuid=None, dwelling_uuid=None):
     if dwelling_uuid is None:
@@ -38,6 +39,8 @@ def list_dwellings(limit=10, offset=0):
 def resident_moved_out(dwelling_uuid):
     # get dwellings devices
     devices = fake_api.get_devices_by_dwelling_uuid(dwelling_uuid=dwelling_uuid)
+    request_json = {"status": "Vacant"}
+    fake_api.update_dwelling_status_by_uuid(dwelling_uuid, request_json)
 
     # set devices to initial_value
     for dwelling_device in devices:
@@ -51,5 +54,14 @@ def resident_moved_out(dwelling_uuid):
     return True, None
 
 
-def resident_moved_in(dwelling_uuid):
-    pass
+def resident_moved_in(dwelling_uuid, create_hub=False):
+    devices = fake_api.get_devices_by_dwelling_uuid(dwelling_uuid=dwelling_uuid)
+    request_json = {"status": "Occupied"}
+    fake_api.update_dwelling_status_by_uuid(dwelling_uuid, request_json)
+
+    if not devices and create_hub:
+        hub_uuid, error = install_hub(dwelling_uuid=dwelling_uuid)
+
+    # could add logic to pair devices
+
+    return True, None

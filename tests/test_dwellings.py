@@ -82,18 +82,72 @@ def test_resident_moved_out_successfully(db_connection, create_dwelling):
     switch_device_after = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (switch_device_uuid,)
     ).fetchone()
+    dwelling_status = db_connection.execute(
+        "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
+    ).fetchone()
 
     assert lock_device_before[2] != lock_device_after[2]
     assert lock_device_before[2] != lock_device_after[2]
+    assert dwelling_status[0] == "Vacant"
 
 
 def test_resident_moved_out_no_hub(db_connection, create_dwelling):
     dwelling_uuid = create_dwelling
 
-    dwelling.resident_moved_out(dwelling_uuid=dwelling_uuid)
+    moved_out, error = dwelling.resident_moved_out(dwelling_uuid=dwelling_uuid)
+
+    dwelling_status = db_connection.execute(
+        "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
+    ).fetchone()
+
+    assert moved_out == True
+    assert dwelling_status[0] == "Vacant"
 
 
 def test_resident_moved_out_no_devices(db_connection, create_dwelling):
     dwelling_uuid = create_dwelling
     hub_uuid, error = dwelling.install_hub(dwelling_uuid=dwelling_uuid)
-    dwelling.resident_moved_out(dwelling_uuid=dwelling_uuid)
+
+    moved_out, error = dwelling.resident_moved_out(dwelling_uuid=dwelling_uuid)
+
+    dwelling_status = db_connection.execute(
+        "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
+    ).fetchone()
+
+    assert moved_out == True
+    assert dwelling_status[0] == "Vacant"
+
+
+def test_resident_moved_in_with_hub(db_connection, create_dwelling):
+    dwelling_uuid = create_dwelling
+    hub_uuid, error = dwelling.install_hub(dwelling_uuid=dwelling_uuid)
+
+    moved_out, error = dwelling.resident_moved_in(dwelling_uuid=dwelling_uuid)
+
+    dwelling_status = db_connection.execute(
+        "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
+    ).fetchone()
+
+    assert moved_out == True
+    assert dwelling_status[0] == "Occupied"
+
+
+def test_resident_moved_in_create_hub(db_connection, create_dwelling):
+    dwelling_uuid = create_dwelling
+
+    moved_in, error = dwelling.resident_moved_in(
+        dwelling_uuid=dwelling_uuid,
+        create_hub=True
+    )
+
+    dwelling_status = db_connection.execute(
+        "SELECT status FROM dwellings WHERE uuid = ?", (dwelling_uuid,)
+    ).fetchone()
+
+    hub_created = db_connection.execute(
+        "SELECT uuid FROM hubs WHERE dwelling_uuid = ?", (dwelling_uuid,)
+    ).fetchone()
+
+    assert moved_in == True
+    assert dwelling_status[0] == "Occupied"
+    assert len(hub_created) == 1
