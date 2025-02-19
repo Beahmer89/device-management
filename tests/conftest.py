@@ -10,7 +10,7 @@ def db_connection():
     """Provides an in-memory DuckDB connection for tests."""
     con = duckdb.connect(database="test_db.duckdb")
     con.sql(
-        "CREATE TABLE dwellings (uuid UUID PRIMARY KEY DEFAULT UUID(), name string)"
+        "CREATE TABLE dwellings (uuid UUID PRIMARY KEY DEFAULT UUID(), status string)"
     )
     con.sql(
         """

@@ -1,132 +1,118 @@
 import uuid
-import os
 
-import duckdb
 from device_management import device
 
-if os.path.exists("test_db.duckdb"):
-    os.remove("test_db.duckdb")
-con = duckdb.connect(database="test_db.duckdb")
-con.sql("CREATE TABLE dwelling (uuid UUID, name string)")
-con.sql("""
-        CREATE TABLE hubs (uuid UUID PRIMARY KEY DEFAULT UUID(), name string)
-        """)
-con.sql(
-    """
-        CREATE TABLE devices (
-        uuid UUID PRIMARY KEY DEFAULT UUID(),
-        type TEXT NOT NULL,
-        state TEXT NOT NULL,
-        hub_uuid UUID REFERENCES hubs(uuid)
-       )"""
-)
 
-
-def test_create_device_known_type():
+def test_create_device_known_type(db_connection):
     device_type = "switch"
-    device_uuid = device.create_device(device_type=device_type)
-    device_created = con.execute(
+    device_uuid, error = device.create_device(device_type=device_type)
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
 
-    assert device_uuid == str(device_created[0])
+    assert error is None
+    assert device_uuid, error == str(device_created[0])
     assert device_created[1] == device_type
 
 
-def test_create_device_type_numeral_state():
+def test_create_device_type_numeral_state(db_connection):
     device_type = "dimmer"
-    device_uuid = device.create_device(device_type=device_type)
-    device_created = con.execute(
+    device_uuid, error = device.create_device(device_type=device_type)
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
 
+    assert error is None
     assert device_uuid == str(device_created[0])
     assert device_created[1] == device_type
 
 
-def test_create_device_unknown_type():
+def test_create_device_unknown_type(db_connection):
     device_type = "alexa"
-    device_uuid = device.create_device(device_type=device_type)
-    device_created = con.execute(
+    device_uuid, error = device.create_device(device_type=device_type)
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE type = ?", (device_uuid,)
     ).fetchone()
 
     assert device_created is None
-    assert device_uuid == f"Cannot Create Device of Type: {device_type}"
+    assert error == f"Cannot Create Device of Type: {device_type}"
 
 
-def test_delete_device():
+def test_delete_device(db_connection):
     device_type = "thermostat"
-    device_uuid = device.create_device(device_type=device_type)
+    device_uuid, error = device.create_device(device_type=device_type)
 
     device.delete_device(device_uuid=device_uuid)
-    device_created = con.execute(
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
     assert device_created is None
 
 
-def test_get_device_state():
+def test_get_device_state(db_connection):
     device_type = "switch"
-    device_uuid = device.create_device(device_type=device_type)
+    device_uuid, error = device.create_device(device_type=device_type)
 
-    device_state = device.get_state(device_uuid=device_uuid)
-    device_created = con.execute(
+    device_state, error = device.get_state(device_uuid=device_uuid)
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
 
+    assert error is None
     assert device_state == device_created[2]
 
 
-def test_get_device_state_unknown_uuid():
+def test_get_device_state_unknown_uuid(db_connection):
     unknown_uuid = str(uuid.uuid4())
-    device_state = device.get_state(device_uuid=unknown_uuid)
+    device_state, error = device.get_state(device_uuid=unknown_uuid)
 
+    assert error == "Device Not Found"
     assert device_state == ""
 
 
-def test_patch_device_state():
+def test_patch_device_state(db_connection):
     device_type = "lock"
     new_state = "open"
-    device_uuid = device.create_device(device_type=device_type)
+    device_uuid, error = device.create_device(device_type=device_type)
 
     device.update_state(device_uuid=device_uuid, state=new_state)
-    device_created = con.execute(
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
     assert device_created[2] == new_state
 
 
-def test_patch_thermostate_device_state():
+def test_patch_thermostate_device_state(db_connection):
     device_type = "thermostat"
     new_state = "71"
-    device_uuid = device.create_device(device_type=device_type)
+    device_uuid, error = device.create_device(device_type=device_type)
 
     device.update_state(device_uuid=device_uuid, state=new_state)
-    device_created = con.execute(
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
     assert device_created[2] == new_state
 
 
-def test_patch_device_bad_state():
+def test_patch_device_bad_state(db_connection):
     device_type = "switch"
     new_state = "middle"
-    device_uuid = device.create_device(device_type=device_type)
+    device_uuid, error = device.create_device(device_type=device_type)
 
     device.update_state(device_uuid=device_uuid, state=new_state)
-    device_created = con.execute(
+    device_created = db_connection.execute(
         "SELECT * FROM devices WHERE uuid = ?", (device_uuid,)
     ).fetchone()
     assert device_created[2] != new_state
 
 
-def test_get_devices():
+def test_get_devices(db_connection):
     device_type = "switch"
     device.create_device(device_type=device_type)
     device.create_device(device_type=device_type)
     device.create_device(device_type=device_type)
 
-    devices = device.get_devices(limit=2)
+    devices, error = device.get_devices(limit=2)
 
+    assert error is None
     assert len(devices) == 2

@@ -8,12 +8,10 @@ def create_device(request_data):
     device_uuid = str(uuid.uuid4())
     device_type = request_data["type"]
     device_state = request_data["state"]
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
         "INSERT INTO devices (uuid, type, state, hub_uuid) VALUES (?, ?, ?, ?) RETURNING (uuid);",
         (device_uuid, device_type, device_state, None),
     ).fetchone()
-    CON.execute("COMMIT;")
     return str(result[0])
 
 
@@ -27,7 +25,6 @@ def get_device_by_uuid(device_uuid):
 def update_device_by_uuid(device_uuid, request_data):
     device_state = request_data["state"]
 
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
         "UPDATE devices SET state = ? WHERE uuid = ? RETURNING state;",
         (
@@ -35,7 +32,6 @@ def update_device_by_uuid(device_uuid, request_data):
             device_uuid,
         ),
     ).fetchone()
-    CON.execute("COMMIT;")
     return result
 
 
@@ -56,12 +52,10 @@ def get_all_devices(limit, offset):
 
 def create_hub():
     hub_uuid = str(uuid.uuid4())
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
         "INSERT INTO hubs (uuid) VALUES (?) RETURNING (uuid);",
         (hub_uuid,),
     ).fetchone()
-    CON.execute("COMMIT;")
     return str(result[0])
 
 
@@ -94,7 +88,6 @@ def get_devices_by_hub(hub_uuid):
 
 def update_device_pairing_by_uuid(device_uuid, request_data):
     hub_uuid = request_data["hub_uuid"]
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
         "UPDATE devices SET hub_uuid = ? WHERE uuid = ? RETURNING hub_uuid;",
         (
@@ -102,34 +95,27 @@ def update_device_pairing_by_uuid(device_uuid, request_data):
             device_uuid,
         ),
     )
-    CON.execute("COMMIT;")
     return result
 
 
 def unpair_device_by_uuid(device_uuid):
-    CON.execute("BEGIN TRANSACTION;")
     CON.execute(
         "UPDATE devices SET hub_uuid = NULL WHERE uuid = ?;",
         (device_uuid,),
     )
 
-    CON.execute("COMMIT;")
-
 
 def create_dwelling():
     dwelling_uuid = str(uuid.uuid4())
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
-        "INSERT INTO dwellings (uuid) VALUES (?) RETURNING (uuid);",
-        (dwelling_uuid,),
+        "INSERT INTO dwellings (uuid, status) VALUES (?, ?) RETURNING (uuid);",
+        (dwelling_uuid, "Vacant"),
     ).fetchone()
-    CON.execute("COMMIT;")
     return str(result[0])
 
 
 def update_hub_with_dwelling_uuid(hub_uuid, request_data):
     dwelling_uuid = request_data["dwelling_uuid"]
-    CON.execute("BEGIN TRANSACTION;")
     result = CON.execute(
         "UPDATE hubs SET dwelling_uuid = ? WHERE uuid = ? RETURNING uuid;",
         (
@@ -137,7 +123,6 @@ def update_hub_with_dwelling_uuid(hub_uuid, request_data):
             hub_uuid,
         ),
     ).fetchone()
-    CON.execute("COMMIT;")
     return result
 
 
@@ -165,3 +150,14 @@ def get_devices_by_dwelling_uuid(dwelling_uuid):
         (dwelling_uuid,),
     ).fetchall()
     return result
+
+
+def update_dwelling_status_by_uuid(dwelling_uuid, request_data):
+    dwelling_status = request_data["status"]
+    result = CON.execute(
+        "UPDATE dwellings SET status = ? WHERE uuid = ?;",
+        (
+            dwelling_status,
+            dwelling_uuid,
+        ),
+    )
